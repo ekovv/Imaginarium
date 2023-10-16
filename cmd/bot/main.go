@@ -26,7 +26,6 @@ func main() {
 	sr := service.NewService(*st)
 	h := handler.NewHandler(sr)
 
-	b.Handle("/:@", h.AddNewUser)
-
+	b.Handle("/login", h.AddNewUser)
 	b.Start()
 }

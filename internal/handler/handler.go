@@ -3,6 +3,7 @@ package handler
 import (
 	"Imaginarium/internal/service"
 	tele "gopkg.in/telebot.v3"
+	"log"
 )
 
 type Handler struct {
@@ -14,7 +15,9 @@ func NewHandler(service service.Inter) *Handler {
 }
 
 func (s *Handler) AddNewUser(c tele.Context) error {
-	err := s.service.SaveInDB(c.Data())
+	nickname := c.Sender().Username
+	log.Println("Никнейм пользователя:", nickname)
+	err := s.service.SaveInDB(nickname)
 	if err != nil {
 		return nil
 	}
