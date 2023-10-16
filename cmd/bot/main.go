@@ -2,6 +2,9 @@ package main
 
 import (
 	"Imaginarium/config"
+	"Imaginarium/internal/handler"
+	"Imaginarium/internal/service"
+	"Imaginarium/internal/storage"
 	tele "gopkg.in/telebot.v3"
 	"log"
 	"time"
@@ -19,10 +22,11 @@ func main() {
 		log.Fatal(err)
 		return
 	}
+	st := storage.NewStorage(conf)
+	sr := service.NewService(*st)
+	h := handler.NewHandler(sr)
 
-	b.Handle("/start", func(c tele.Context) error {
-		return c.Send("Hello!")
-	})
+	b.Handle("/:@", h.AddNewUser)
 
 	b.Start()
 }

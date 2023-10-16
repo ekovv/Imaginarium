@@ -4,6 +4,7 @@ import (
 	"Imaginarium/config"
 	"database/sql"
 	"fmt"
+	_ "github.com/lib/pq"
 )
 
 type Storage struct {
