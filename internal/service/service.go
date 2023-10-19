@@ -5,8 +5,6 @@ import (
 	"fmt"
 	tele "gopkg.in/telebot.v3"
 	"os"
-	"path/filepath"
-	"strings"
 )
 
 type Inter interface {
@@ -43,26 +41,23 @@ func (s *Service) Inc(id int) error {
 }
 
 func (s *Service) AddInMap() map[int][]*tele.Photo {
-	files, err := os.ReadDir("./src")
+	files, err := os.ReadDir("src")
 	if err != nil {
 		fmt.Println("Ошибка чтения папки:", err)
 		return nil
 	}
-	for i, _ := range s.wantPlay {
+	for _, e := range s.wantPlay {
 		for _, file := range files {
-			if isImage(file.Name()) {
-				photo := &tele.Photo{File: tele.FromDisk(file.Name())}
-				s.game[i] = append(s.game[i], photo)
-				if len(s.game[i]) >= s.countCards {
-					break
-				}
+			if file.Name() == ".DS_Store" {
+				continue
 			}
+			photo := &tele.Photo{File: tele.FromDisk(file.Name())}
+			s.game[e] = append(s.game[e], photo)
+			if len(s.game[e]) >= s.countCards {
+				break
+			}
+
 		}
 	}
 	return s.game
-}
-
-func isImage(filename string) bool {
-	ext := strings.ToLower(filepath.Ext(filename))
-	return ext == ".jpg" || ext == ".jpeg" || ext == ".png"
 }

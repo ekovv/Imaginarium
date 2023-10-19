@@ -73,10 +73,16 @@ func (s *Handler) GiveCards(c tele.Context) error {
 	m := s.Service.AddInMap()
 	id := c.Sender().ID
 	for k, v := range m {
-		newK := int64(k)
-		if id == newK {
-			s.Bot.Send(c.Sender(), v)
+		for _, i := range v {
+			newK := int64(k)
+			if id == newK {
+				_, err := s.Bot.Send(c.Sender(), i)
+				if err != nil {
+					return err
+				}
+			}
 		}
+
 	}
 	return nil
 }
