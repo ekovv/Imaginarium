@@ -44,19 +44,39 @@ func (s *Handler) AddNewUser(c tele.Context) error {
 }
 func (s *Handler) AddPlayer(c tele.Context) error {
 	id := c.Sender().ID
-	ID := int(id)
-	err := s.Service.AddInMap(ID)
+	newID := int(id)
+	err := s.Service.Inc(newID)
 	if err != nil {
 		return err
 	}
+	reply := "У вас есть 1 минута чтобы другие участники смогли присоединиться!"
+	s.Bot.Send(c.Chat(), reply)
 
-	_, err = s.Bot.Send(c.Sender(), "Ты зарегался в игру в чате")
-	if err != nil {
-		return err
-	}
-	_, err = s.Bot.Send(c.Chat(), "Ты авторизовался в игру")
-	if err != nil {
-		return err
+	// Запускаем таймер на 5 секунд
+	duration := 2 * time.Second
+	timer := time.NewTimer(duration)
+	// Горутина для обработки события истечения времени таймера
+	go func() {
+		<-timer.C // Ждем истечения таймера
+		reply := &tele.ReplyMarkup{}
+
+		btn := reply.Data("Ready", "button_callback")
+		reply.Inline(
+			reply.Row(btn),
+		)
+		s.Bot.Send(c.Chat(), "Нажми кнопку 'Ready'", reply)
+	}()
+	return nil
+}
+
+func (s *Handler) GiveCards(c tele.Context) error {
+	m := s.Service.AddInMap()
+	id := c.Sender().ID
+	for k, v := range m {
+		newK := int64(k)
+		if id == newK {
+			s.Bot.Send(c.Sender(), v)
+		}
 	}
 	return nil
 }

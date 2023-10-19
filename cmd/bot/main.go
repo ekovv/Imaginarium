@@ -5,6 +5,7 @@ import (
 	"Imaginarium/internal/handler"
 	"Imaginarium/internal/service"
 	"Imaginarium/internal/storage"
+	"gopkg.in/telebot.v3"
 )
 
 func main() {
@@ -17,5 +18,7 @@ func main() {
 	}
 	h.Bot.Handle("/login", h.AddNewUser)
 	h.Bot.Handle("/play", h.AddPlayer)
+
+	h.Bot.Handle(telebot.OnCallback, h.GiveCards)
 	h.Bot.Start()
 }
