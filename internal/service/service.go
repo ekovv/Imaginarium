@@ -41,7 +41,7 @@ func (s *Service) Inc(id int) error {
 }
 
 func (s *Service) AddInMap() map[int][]*tele.Photo {
-	files, err := os.ReadDir("src")
+	files, err := os.ReadDir("./src")
 	if err != nil {
 		fmt.Println("Ошибка чтения папки:", err)
 		return nil
