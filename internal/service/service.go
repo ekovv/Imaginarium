@@ -10,19 +10,19 @@ import (
 type Inter interface {
 	SaveInDB(id int) error
 	Inc(chatID int, userID int) error
-	AddInMap(chatID int, userID int) (map[int]Gamers, error)
+	AddInMap(chatID int, userID int) (map[int][]Gamers, error)
 }
 
 type Service struct {
 	Storage      storage.Storage
-	game         map[int]Gamers
+	game         map[int][]Gamers
 	wantPlay     map[int][]int
 	countCards   int
 	countPlayers int
 }
 
 func NewService(storage storage.Storage) *Service {
-	return &Service{Storage: storage, game: make(map[int]Gamers), wantPlay: make(map[int][]int)}
+	return &Service{Storage: storage, game: make(map[int][]Gamers), wantPlay: make(map[int][]int)}
 }
 
 func (s *Service) SaveInDB(id int) error {
@@ -34,42 +34,46 @@ func (s *Service) SaveInDB(id int) error {
 }
 
 func (s *Service) Inc(chatID int, userID int) error {
-	_, ok := s.game[chatID]
-	if ok {
-		return fmt.Errorf("Game in process")
+	ph, _ := s.game[chatID]
+	for _, i := range ph {
+		if i.Img != nil && i.ID == userID {
+			return fmt.Errorf("Game in process")
+		}
 	}
 	s.countPlayers++
 	s.countCards++
 	s.wantPlay[chatID] = append(s.wantPlay[chatID], userID)
-
 	return nil
 }
 
-func (s *Service) AddInMap(chatID int, userID int) (map[int]Gamers, error) {
-	_, ok := s.game[chatID]
-	if ok {
-		return nil, fmt.Errorf("Game in process")
+func (s *Service) AddInMap(chatID int, userID int) (map[int][]Gamers, error) {
+	ph, _ := s.game[chatID]
+	for _, i := range ph {
+		if i.Img != nil && i.ID == userID {
+			return nil, fmt.Errorf("Game in process")
+		}
 	}
 	files, err := os.ReadDir("./src")
 	if err != nil {
 		fmt.Println("Ошибка чтения папки:", err)
 		return nil, err
 	}
-	for _, e := range s.wantPlay[chatID] {
-		for _, file := range files {
-			if len(s.game[e].Img) >= s.countCards {
-				break
+	p, _ := s.game[chatID]
+	for _, file := range files {
+		for _, i := range p {
+			if i.ID == userID && len(i.Img) >= s.countPlayers {
+				return s.game, nil
 			}
-			if file.Name() == ".DS_Store" {
-				continue
-			}
-			photo := &tele.Photo{File: tele.FromDisk(file.Name())}
-			g := Gamers{}
-			g.ID = userID
-			g.Img = append(g.Img, photo)
-			s.game[chatID] = g
-
 		}
+		if file.Name() == ".DS_Store" {
+			continue
+		}
+		photo := &tele.Photo{File: tele.FromDisk(file.Name())}
+		g := Gamers{}
+		g.ID = userID
+		g.Img = append(g.Img, photo)
+		s.game[chatID] = append(s.game[chatID], g)
+
 	}
 	return s.game, nil
 }

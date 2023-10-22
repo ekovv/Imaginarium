@@ -49,12 +49,13 @@ func (s *Handler) AddPlayer(c tele.Context) error {
 	err := s.Service.Inc(int(chatID), int(userID))
 	if err != nil {
 		s.Bot.Send(c.Chat(), "Игра уже идет")
+		return err
 	}
 	reply := "У вас есть 1 минута чтобы другие участники смогли присоединиться!"
 	s.Bot.Send(c.Chat(), reply)
 
 	// Запускаем таймер на 5 секунд
-	duration := 5 * time.Second
+	duration := 10 * time.Second
 	timer := time.NewTimer(duration)
 	// Горутина для обработки события истечения времени таймера
 	go func() {
@@ -80,21 +81,22 @@ func (s *Handler) GiveCards(c tele.Context) error {
 	}
 	for k, v := range m {
 		if k == int(chatID) {
-			for _, i := range v.Img {
-				if v.ID == int(userID) {
-					open, err := os.Open("/Users/dmitrydenisov/GolandProjects/Imaginarium/src/" + i.FileLocal)
-					photo := &tele.Photo{File: tele.FromDisk(open.Name())}
-					if err != nil {
-						return err
-					}
-					_, err = s.Bot.Send(c.Sender(), photo)
-					if err != nil {
-						return err
+			for _, i := range v {
+				if i.ID == int(userID) {
+					for _, d := range i.Img {
+						open, err := os.Open("/Users/dmitrydenisov/GolandProjects/Imaginarium/src/" + d.FileLocal)
+						photo := &tele.Photo{File: tele.FromDisk(open.Name())}
+						if err != nil {
+							return err
+						}
+						_, err = s.Bot.Send(c.Sender(), photo)
+						if err != nil {
+							return err
+						}
 					}
 				}
 			}
 		}
-
 	}
 	return nil
 }
