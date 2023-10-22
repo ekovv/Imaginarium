@@ -4,6 +4,7 @@ import (
 	"Imaginarium/config"
 	"Imaginarium/internal/service"
 	tele "gopkg.in/telebot.v3"
+	"os"
 	"time"
 )
 
@@ -53,7 +54,7 @@ func (s *Handler) AddPlayer(c tele.Context) error {
 	s.Bot.Send(c.Chat(), reply)
 
 	// Запускаем таймер на 5 секунд
-	duration := 2 * time.Second
+	duration := 15 * time.Second
 	timer := time.NewTimer(duration)
 	// Горутина для обработки события истечения времени таймера
 	go func() {
@@ -76,7 +77,12 @@ func (s *Handler) GiveCards(c tele.Context) error {
 		for _, i := range v {
 			newK := int64(k)
 			if id == newK {
-				_, err := s.Bot.Send(c.Sender(), i)
+				open, err := os.Open("/Users/dmitrydenisov/GolandProjects/Imaginarium/src/" + i.FileLocal)
+				photo := &tele.Photo{File: tele.FromDisk(open.Name())}
+				if err != nil {
+					return err
+				}
+				_, err = s.Bot.Send(c.Sender(), photo)
 				if err != nil {
 					return err
 				}

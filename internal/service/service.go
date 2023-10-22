@@ -37,6 +37,7 @@ func (s *Service) Inc(id int) error {
 	s.countPlayers++
 	s.countCards++
 	s.wantPlay = append(s.wantPlay, id)
+
 	return nil
 }
 
@@ -48,14 +49,14 @@ func (s *Service) AddInMap() map[int][]*tele.Photo {
 	}
 	for _, e := range s.wantPlay {
 		for _, file := range files {
+			if len(s.game[e]) >= s.countCards {
+				break
+			}
 			if file.Name() == ".DS_Store" {
 				continue
 			}
 			photo := &tele.Photo{File: tele.FromDisk(file.Name())}
 			s.game[e] = append(s.game[e], photo)
-			if len(s.game[e]) >= s.countCards {
-				break
-			}
 
 		}
 	}
