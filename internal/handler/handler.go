@@ -55,7 +55,7 @@ func (s *Handler) AddPlayer(c tele.Context) error {
 	s.Bot.Send(c.Chat(), reply)
 
 	// Запускаем таймер на 5 секунд
-	duration := 10 * time.Second
+	duration := 5 * time.Second
 	timer := time.NewTimer(duration)
 	// Горутина для обработки события истечения времени таймера
 	go func() {

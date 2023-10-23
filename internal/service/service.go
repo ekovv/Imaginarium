@@ -58,8 +58,9 @@ func (s *Service) AddInMap(chatID int, userID int) (map[int][]Gamers, error) {
 		fmt.Println("Ошибка чтения папки:", err)
 		return nil, err
 	}
-	p, _ := s.game[chatID]
+	g := Gamers{}
 	for _, file := range files {
+		p, _ := s.game[chatID]
 		for _, i := range p {
 			if i.ID == userID && len(i.Img) >= s.countPlayers {
 				return s.game, nil
@@ -69,9 +70,11 @@ func (s *Service) AddInMap(chatID int, userID int) (map[int][]Gamers, error) {
 			continue
 		}
 		photo := &tele.Photo{File: tele.FromDisk(file.Name())}
-		g := Gamers{}
 		g.ID = userID
 		g.Img = append(g.Img, photo)
+		if len(g.Img) != s.countCards {
+			continue
+		}
 		s.game[chatID] = append(s.game[chatID], g)
 
 	}
