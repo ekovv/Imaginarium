@@ -59,6 +59,7 @@ func (s *Service) AddInMap(chatID int, userID int) (map[int][]Gamers, error) {
 		return nil, err
 	}
 	g := Gamers{}
+continiueLoop:
 	for _, file := range files {
 		p, _ := s.game[chatID]
 		for _, i := range p {
@@ -71,6 +72,18 @@ func (s *Service) AddInMap(chatID int, userID int) (map[int][]Gamers, error) {
 		}
 		photo := &tele.Photo{File: tele.FromDisk(file.Name())}
 		g.ID = userID
+		for _, a := range p {
+			for _, o := range a.Img {
+				if o.FileLocal == file.Name() {
+					continue continiueLoop
+				}
+			}
+		}
+		for _, q := range g.Img {
+			if q == photo {
+				continue
+			}
+		}
 		g.Img = append(g.Img, photo)
 		if len(g.Img) != s.countCards {
 			continue
