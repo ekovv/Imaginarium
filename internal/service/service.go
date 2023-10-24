@@ -36,7 +36,7 @@ func (s *Service) SaveInDB(id int) error {
 func (s *Service) Inc(chatID int, userID int) error {
 	ph, _ := s.game[chatID]
 	for _, i := range ph {
-		if i.Img != nil && i.ID == userID {
+		if i.Img != nil {
 			return fmt.Errorf("Game in process")
 		}
 	}

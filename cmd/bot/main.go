@@ -17,8 +17,8 @@ func main() {
 		return
 	}
 	h.Bot.Handle("/login", h.AddNewUser)
-	h.Bot.Handle("/play", h.AddPlayer)
+	h.Bot.Handle("/start", h.Start)
 
-	h.Bot.Handle(telebot.OnCallback, h.GiveCards)
+	h.Bot.Handle(telebot.OnCallback, h.HandleButton)
 	h.Bot.Start()
 }
