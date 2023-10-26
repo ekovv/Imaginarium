@@ -35,7 +35,6 @@ func (s *Handler) Start(c tele.Context) error {
 	startGameKeyboard := &tele.ReplyMarkup{
 		InlineKeyboard: [][]tele.InlineButton{
 			{
-				// Создайте кнопку с текстом "Начать игру" и уникальным идентификатором "start_game"
 				tele.InlineButton{
 					Text: "Начать игру",
 					Data: "start_game",
@@ -43,7 +42,6 @@ func (s *Handler) Start(c tele.Context) error {
 			},
 		},
 	}
-	// Отправьте сообщение с инлайн-клавиатурой
 	s.Bot.Reply(c.Message(), "Чтобы начать игру, нажмите на кнопку ниже.", startGameKeyboard)
 	return nil
 }
@@ -86,26 +84,20 @@ func (s *Handler) AddPlayer(c tele.Context) error {
 	}
 	reply := "У вас есть 1 минута чтобы другие участники смогли присоединиться!"
 	m := c.Message()
-	// Получите чат, в котором было отправлено сообщение
-
-	// Проверьте, есть ли уже такое сообщение в беседе
 	exists := false
 	if lastMessage != nil && lastMessage.Text == m.Text {
 		exists = true
 	}
-	// Если сообщение уже существует, не отправляйте его снова
 	if exists {
 		return nil
 	}
 	lastMessage = c.Message()
 	s.Bot.Send(c.Chat(), reply)
-
-	// Запускаем таймер на 5 секунд
-	duration := 5 * time.Second
+	duration := 10 * time.Second
 	timer := time.NewTimer(duration)
-	// Горутина для обработки события истечения времени таймера
+
 	go func() {
-		<-timer.C // Ждем истечения таймера
+		<-timer.C
 		reply := &tele.ReplyMarkup{}
 		btn := reply.Data("Ready", "ready")
 		reply.Inline(
