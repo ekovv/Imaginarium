@@ -12,7 +12,7 @@ type Inter interface {
 	SaveInDB(id int) error
 	Inc(chatID int, userID int) error
 	AddInMap(chatID int, userID int) (map[int][]Gamers, error)
-	Association(association string, userID int) (string, error)
+	Association(association string, userID int) (string, int, error)
 }
 
 type Service struct {
@@ -96,7 +96,14 @@ continiueLoop:
 	return s.game, nil
 }
 
-func (s *Service) Association(association string, userID int) (string, error) {
-	result := strings.TrimPrefix(association, "/")
-	return result, nil
+func (s *Service) Association(association string, userID int) (string, int, error) {
+	for key, value := range s.wantPlay {
+		for _, user := range value {
+			if user == userID {
+				result := strings.TrimPrefix(association, "/")
+				return result, key, nil
+			}
+		}
+	}
+	return "", 0, fmt.Errorf("Нету тебя в беседе")
 }

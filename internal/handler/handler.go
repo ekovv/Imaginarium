@@ -143,12 +143,13 @@ func (s *Handler) Association(c tele.Context) error {
 	if !strings.HasPrefix(data, "/") {
 		s.Bot.Send(c.Sender(), "Напиши мне ассоциацию начиная с /")
 	}
-	res, err := s.Service.Association(data, int(c.Sender().ID))
+	str, chat, err := s.Service.Association(data, int(c.Sender().ID))
 	if err != nil {
 		return err
 	}
-	result := "Ассоциация была такая: " + res
-	s.Bot.Send(c.Chat(), result)
+	chatID := tele.ChatID(chat)
+	result := "Ассоциация была такая: " + str
+	s.Bot.Send(chatID, result)
 
 	return nil
 }
