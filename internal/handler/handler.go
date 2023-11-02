@@ -5,6 +5,7 @@ import (
 	"Imaginarium/internal/service"
 	tele "gopkg.in/telebot.v3"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -93,7 +94,7 @@ func (s *Handler) AddPlayer(c tele.Context) error {
 	}
 	lastMessage = c.Message()
 	s.Bot.Send(c.Chat(), reply)
-	duration := 60 * time.Second
+	duration := 3 * time.Second
 	timer := time.NewTimer(duration)
 
 	go func() {
@@ -134,5 +135,20 @@ func (s *Handler) GiveCards(c tele.Context) error {
 			}
 		}
 	}
+	return nil
+}
+
+func (s *Handler) Association(c tele.Context) error {
+	data := c.Message().Text
+	if !strings.HasPrefix(data, "/") {
+		s.Bot.Send(c.Sender(), "Напиши мне ассоциацию начиная с /")
+	}
+	res, err := s.Service.Association(data, int(c.Sender().ID))
+	if err != nil {
+		return err
+	}
+	result := "Ассоциация была такая: " + res
+	s.Bot.Send(c.Chat(), result)
+
 	return nil
 }

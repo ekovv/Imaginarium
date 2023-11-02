@@ -5,12 +5,14 @@ import (
 	"fmt"
 	tele "gopkg.in/telebot.v3"
 	"os"
+	"strings"
 )
 
 type Inter interface {
 	SaveInDB(id int) error
 	Inc(chatID int, userID int) error
 	AddInMap(chatID int, userID int) (map[int][]Gamers, error)
+	Association(association string, userID int) (string, error)
 }
 
 type Service struct {
@@ -92,4 +94,9 @@ continiueLoop:
 
 	}
 	return s.game, nil
+}
+
+func (s *Service) Association(association string, userID int) (string, error) {
+	result := strings.TrimPrefix(association, "/")
+	return result, nil
 }
