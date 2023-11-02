@@ -135,6 +135,10 @@ func (s *Handler) GiveCards(c tele.Context) error {
 			}
 		}
 	}
+	ready := s.Service.MapIsFull(int(chatID), int(userID))
+	if ready {
+
+	}
 	return nil
 }
 

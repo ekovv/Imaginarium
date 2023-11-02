@@ -13,6 +13,7 @@ type Inter interface {
 	Inc(chatID int, userID int) error
 	AddInMap(chatID int, userID int) (map[int][]Gamers, error)
 	Association(association string, userID int) (string, int, error)
+	MapIsFull(chatID int, userID int) bool
 }
 
 type Service struct {
@@ -106,4 +107,26 @@ func (s *Service) Association(association string, userID int) (string, int, erro
 		}
 	}
 	return "", 0, fmt.Errorf("Нету тебя в беседе")
+}
+
+func (s *Service) MapIsFull(chatID int, userID int) bool {
+	flag := false
+	count := 0
+	for key, value := range s.game {
+		if value != nil && key == chatID {
+			for _, i := range value {
+				if i.ID == userID && i.Img != nil {
+					count++
+					flag = true
+				} else {
+					flag = false
+				}
+			}
+		}
+	}
+	if flag && count == s.countPlayers {
+		return true
+	} else {
+		return false
+	}
 }
