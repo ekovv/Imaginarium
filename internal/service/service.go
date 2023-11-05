@@ -17,6 +17,7 @@ type Inter interface {
 	Association(association string, userID int) (string, int, error)
 	MapIsFull(chatID int, userID int) bool
 	StartG(chatID int) (string, error)
+	TakePhoto(userID int, file string) (int, *tele.Photo, error)
 }
 
 type Service struct {
@@ -159,4 +160,24 @@ func (s *Service) StartG(chatID int) (string, error) {
 	}
 	return "", nil
 
+}
+
+func (s *Service) TakePhoto(userID int, file string) (int, *tele.Photo, error) {
+	for k, v := range s.game {
+		for _, d := range v {
+			if d.ID == userID {
+				for _, p := range d.Img {
+					open, err := os.Open(p.FileLocal) // + длинный путь
+
+					if err != nil {
+						return 0, nil, err
+					}
+					if open.Name() == file {
+						return k, &tele.Photo{File: p.File}, nil
+					}
+				}
+			}
+		}
+	}
+	return 0, nil, nil
 }

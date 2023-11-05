@@ -169,3 +169,19 @@ func (s *Handler) StartGame(c tele.Context) error {
 	s.Bot.Send(c.Chat(), res)
 	return nil
 }
+
+func (s *Handler) PhotoTake(c tele.Context) error {
+	photo := c.Message().Photo.File
+	userID := c.Sender().ID
+	localFile := photo.FileLocal
+	chat, resPhoto, err := s.Service.TakePhoto(int(userID), localFile)
+	if err != nil {
+		return err
+	}
+	open, err := os.Open(resPhoto.FilePath)
+	phot := &tele.Photo{File: tele.FromDisk(open.Name())}
+	chatID := tele.ChatID(chat)
+	s.Bot.Send(chatID, phot)
+	return nil
+
+}
