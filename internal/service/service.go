@@ -4,32 +4,38 @@ import (
 	"Imaginarium/internal/storage"
 	"fmt"
 	tele "gopkg.in/telebot.v3"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 )
 
 type Inter interface {
-	SaveInDB(id int) error
+	SaveInDB(name string, id int) error
 	Inc(chatID int, userID int) error
 	AddInMap(chatID int, userID int) (map[int][]Gamers, error)
 	Association(association string, userID int) (string, int, error)
 	MapIsFull(chatID int, userID int) bool
+	StartG(chatID int) (string, error)
 }
 
 type Service struct {
-	Storage      storage.Storage
-	game         map[int][]Gamers
-	wantPlay     map[int][]int
-	countCards   int
-	countPlayers int
+	Storage          storage.Storage
+	game             map[int][]Gamers
+	wantPlay         map[int][]int
+	countCards       int
+	countPlayers     int
+	countAssociation int
+	countReady       int
+	flag             bool
 }
 
 func NewService(storage storage.Storage) *Service {
 	return &Service{Storage: storage, game: make(map[int][]Gamers), wantPlay: make(map[int][]int)}
 }
 
-func (s *Service) SaveInDB(id int) error {
-	err := s.Storage.Save(id)
+func (s *Service) SaveInDB(name string, id int) error {
+	err := s.Storage.Save(name, id)
 	if err != nil {
 		return fmt.Errorf("not save in database: %w", err)
 	}
@@ -102,6 +108,7 @@ func (s *Service) Association(association string, userID int) (string, int, erro
 		for _, user := range value {
 			if user == userID {
 				result := strings.TrimPrefix(association, "/")
+				s.countAssociation++
 				return result, key, nil
 			}
 		}
@@ -110,23 +117,46 @@ func (s *Service) Association(association string, userID int) (string, int, erro
 }
 
 func (s *Service) MapIsFull(chatID int, userID int) bool {
-	flag := false
-	count := 0
 	for key, value := range s.game {
 		if value != nil && key == chatID {
 			for _, i := range value {
 				if i.ID == userID && i.Img != nil {
-					count++
-					flag = true
+					s.countReady++
+					s.flag = true
 				} else {
-					flag = false
+					s.flag = false
 				}
 			}
 		}
 	}
-	if flag && count == s.countPlayers {
+	if s.flag && s.countReady == s.countPlayers {
 		return true
 	} else {
 		return false
 	}
+}
+
+func (s *Service) StartG(chatID int) (string, error) {
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+	var array []int
+	for key, value := range s.game {
+		if key == chatID {
+			for _, v := range value {
+				array = append(array, v.ID)
+
+			}
+		}
+	}
+	index := rand.Intn(len(array))
+	for i, _ := range array {
+		if index == i {
+			nickName, err := s.Storage.TakeNickName(array[i])
+			if err != nil {
+				return "", err
+			}
+			return nickName, nil
+		}
+	}
+	return "", nil
+
 }

@@ -60,8 +60,9 @@ func (s *Handler) HandleButton(c tele.Context) error {
 
 func (s *Handler) AddNewUser(c tele.Context) error {
 	id := c.Sender().ID
+	name := c.Sender().Username
 	ID := int(id)
-	err := s.Service.SaveInDB(ID)
+	err := s.Service.SaveInDB(name, ID)
 	if err != nil {
 		return err
 	}
@@ -94,7 +95,7 @@ func (s *Handler) AddPlayer(c tele.Context) error {
 	}
 	lastMessage = c.Message()
 	s.Bot.Send(c.Chat(), reply)
-	duration := 60 * time.Second
+	duration := 10 * time.Second
 	timer := time.NewTimer(duration)
 
 	go func() {
@@ -137,23 +138,34 @@ func (s *Handler) GiveCards(c tele.Context) error {
 	}
 	ready := s.Service.MapIsFull(int(chatID), int(userID))
 	if ready {
-
+		err = s.StartGame(c)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func (s *Handler) Association(c tele.Context) error {
 	data := c.Message().Text
-	if !strings.HasPrefix(data, "/") {
-		s.Bot.Send(c.Sender(), "Напиши мне ассоциацию начиная с /")
+	if strings.HasPrefix(data, "/") {
+		str, chat, err := s.Service.Association(data, int(c.Sender().ID))
+		if err != nil {
+			return err
+		}
+		chatID := tele.ChatID(chat)
+		result := "Ассоциация была такая: " + str
+		s.Bot.Send(chatID, result)
 	}
-	str, chat, err := s.Service.Association(data, int(c.Sender().ID))
+	return nil
+}
+
+func (s *Handler) StartGame(c tele.Context) error {
+	user, err := s.Service.StartG(int(c.Chat().ID))
 	if err != nil {
 		return err
 	}
-	chatID := tele.ChatID(chat)
-	result := "Ассоциация была такая: " + str
-	s.Bot.Send(chatID, result)
-
+	res := "@" + user
+	s.Bot.Send(c.Chat(), res)
 	return nil
 }

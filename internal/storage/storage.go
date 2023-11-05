@@ -26,11 +26,21 @@ func (s *Storage) Close() error {
 	return s.conn.Close()
 }
 
-func (s *Storage) Save(id int) error {
-	insertQuery := "INSERT INTO users(name) VALUES ($1)"
-	_, err := s.conn.Exec(insertQuery, id)
+func (s *Storage) Save(name string, id int) error {
+	insertQuery := "INSERT INTO users(name, idoftelegram) VALUES ($1, $2)"
+	_, err := s.conn.Exec(insertQuery, name, id)
 	if err != nil {
 		return fmt.Errorf("not save in database: %w", err)
 	}
 	return nil
+}
+
+func (s *Storage) TakeNickName(id int) (string, error) {
+	query := "SELECT name FROM users WHERE idoftelegram = $1"
+	var nickName string
+	err := s.conn.QueryRow(query, id).Scan(&nickName)
+	if err != nil {
+		return "", fmt.Errorf("not take name from database: %w", err)
+	}
+	return nickName, nil
 }
