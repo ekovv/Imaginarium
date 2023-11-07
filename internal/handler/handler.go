@@ -3,8 +3,10 @@ package handler
 import (
 	"Imaginarium/config"
 	"Imaginarium/internal/service"
+	"fmt"
 	tele "gopkg.in/telebot.v3"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -54,6 +56,16 @@ func (s *Handler) HandleButton(c tele.Context) error {
 		s.AddPlayer(c)
 	case "\fready":
 		s.GiveCards(c)
+	case "\f0":
+		s.PhotoTake(c)
+	case "\f1":
+		s.PhotoTake(c)
+	case "\f2":
+		s.PhotoTake(c)
+	case "\f3":
+		s.PhotoTake(c)
+	case "\f4":
+		s.PhotoTake(c)
 	}
 	return nil
 }
@@ -121,7 +133,7 @@ func (s *Handler) GiveCards(c tele.Context) error {
 		if k == int(chatID) {
 			for _, i := range v {
 				if i.ID == int(userID) {
-					for _, d := range i.Img {
+					for p, d := range i.Img {
 						open, err := os.Open("/Users/dmitrydenisov/GolandProjects/Imaginarium/src/" + d.FileLocal)
 						photo := &tele.Photo{File: tele.FromDisk(open.Name())}
 						if err != nil {
@@ -131,6 +143,18 @@ func (s *Handler) GiveCards(c tele.Context) error {
 						if err != nil {
 							return nil
 						}
+						btn := tele.InlineButton{
+							Unique: strconv.Itoa(p),
+							Text:   fmt.Sprint("Для ассоциации №" + strconv.Itoa(p)),
+						}
+
+						inlineKeys := [][]tele.InlineButton{
+							[]tele.InlineButton{btn},
+						}
+
+						s.Bot.Send(c.Sender(), "Выберите фото:", &tele.ReplyMarkup{
+							InlineKeyboard: inlineKeys,
+						})
 					}
 				}
 			}
@@ -171,17 +195,37 @@ func (s *Handler) StartGame(c tele.Context) error {
 }
 
 func (s *Handler) PhotoTake(c tele.Context) error {
-	photo := c.Message().Photo.File
+	photoNumber := c.Data()
 	userID := c.Sender().ID
-	localFile := photo.FileLocal
-	chat, resPhoto, err := s.Service.TakePhoto(int(userID), localFile)
+	number, _ := strconv.Atoi(photoNumber[2:])
+	chat, resPhoto, err := s.Service.TakePhoto(int(userID), number)
 	if err != nil {
 		return err
 	}
-	open, err := os.Open(resPhoto.FilePath)
-	phot := &tele.Photo{File: tele.FromDisk(open.Name())}
-	chatID := tele.ChatID(chat)
-	s.Bot.Send(chatID, phot)
+	for _, ph := range resPhoto {
+		for i, c := range ph.Img {
+			open, err := os.Open("/Users/dmitrydenisov/GolandProjects/Imaginarium/src/" + c.FileLocal)
+			if err != nil {
+				return err
+			}
+			defer open.Close()
+			phot := &tele.Photo{File: tele.FromDisk(open.Name())}
+			chatID := tele.ChatID(chat)
+			s.Bot.Send(chatID, phot)
+			btn := tele.InlineButton{
+				Unique: strconv.Itoa(i),
+				Text:   fmt.Sprint("Голосование №" + strconv.Itoa(i)),
+			}
+
+			inlineKeys := [][]tele.InlineButton{
+				[]tele.InlineButton{btn},
+			}
+
+			s.Bot.Send(chatID, "Выберите фото:", &tele.ReplyMarkup{
+				InlineKeyboard: inlineKeys,
+			})
+		}
+	}
 	return nil
 
 }

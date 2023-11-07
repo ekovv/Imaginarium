@@ -17,7 +17,7 @@ type Inter interface {
 	Association(association string, userID int) (string, int, error)
 	MapIsFull(chatID int, userID int) bool
 	StartG(chatID int) (string, error)
-	TakePhoto(userID int, file string) (int, *tele.Photo, error)
+	TakePhoto(userID int, photoNumber int) (int, []Gamers, error)
 }
 
 type Service struct {
@@ -29,10 +29,11 @@ type Service struct {
 	countAssociation int
 	countReady       int
 	flag             bool
+	inGame           map[int][]Gamers
 }
 
 func NewService(storage storage.Storage) *Service {
-	return &Service{Storage: storage, game: make(map[int][]Gamers), wantPlay: make(map[int][]int)}
+	return &Service{Storage: storage, game: make(map[int][]Gamers), wantPlay: make(map[int][]int), inGame: make(map[int][]Gamers)}
 }
 
 func (s *Service) SaveInDB(name string, id int) error {
@@ -162,19 +163,28 @@ func (s *Service) StartG(chatID int) (string, error) {
 
 }
 
-func (s *Service) TakePhoto(userID int, file string) (int, *tele.Photo, error) {
+func (s *Service) TakePhoto(userID int, photoNumber int) (int, []Gamers, error) {
+	chatID := 0
 	for k, v := range s.game {
 		for _, d := range v {
 			if d.ID == userID {
-				for _, p := range d.Img {
-					open, err := os.Open(p.FileLocal) // + длинный путь
-
-					if err != nil {
-						return 0, nil, err
+				for i, p := range d.Img {
+					if i == photoNumber {
+						chatID = k
+						gamer := Gamers{}
+						gamer.ID = userID
+						gamer.Img = append(gamer.Img, p)
+						s.inGame[chatID] = append(s.inGame[chatID], gamer)
 					}
-					if open.Name() == file {
-						return k, &tele.Photo{File: p.File}, nil
-					}
+				}
+			}
+		}
+	}
+	for _, o := range s.inGame {
+		if len(o) == s.countPlayers {
+			for _, x := range o {
+				if len(x.Img) == 1 && chatID != 0 {
+					return chatID, o, nil
 				}
 			}
 		}
