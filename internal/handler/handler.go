@@ -67,15 +67,15 @@ func (s *Handler) HandleButton(c tele.Context) error {
 	case "\f4":
 		s.PhotoTake(c)
 	case "\fГолосование0":
-		//s.PhotoTake(c)
+		s.Vote(c)
 	case "\fГолосование1":
-		//s.PhotoTake(c)
+		s.Vote(c)
 	case "\fГолосование2":
-		//s.PhotoTake(c)
+		s.Vote(c)
 	case "\fГолосование3":
-		//s.PhotoTake(c)
+		s.Vote(c)
 	case "\fГолосование4":
-		//s.PhotoTake(c)
+		s.Vote(c)
 	}
 	return nil
 }
@@ -237,5 +237,20 @@ func (s *Handler) PhotoTake(c tele.Context) error {
 		}
 	}
 	return nil
+}
 
+func (s *Handler) Vote(c tele.Context) error {
+	photoUser := c.Data()
+	chatID := c.Chat().ID
+	userID := c.Sender().ID
+	ph, err := strconv.Atoi(photoUser[13:])
+	if err != nil {
+		return err
+	}
+	vter, err := s.Service.Vote(ph, int(userID), int(chatID))
+	for _, i := range vter {
+		resStr := fmt.Sprintf("Проголосовали за %s: %d", i.Nickname, i.Count)
+		s.Bot.Send(c.Chat(), resStr)
+	}
+	return nil
 }

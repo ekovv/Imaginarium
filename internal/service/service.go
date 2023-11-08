@@ -18,6 +18,7 @@ type Inter interface {
 	MapIsFull(chatID int, userID int) bool
 	StartG(chatID int) (string, error)
 	TakePhoto(userID int, photoNumber int) (int, []Gamers, error)
+	Vote(vote int, userID int, chatID int) ([]Voting, error)
 }
 
 type Service struct {
@@ -30,10 +31,13 @@ type Service struct {
 	countReady       int
 	flag             bool
 	inGame           map[int][]Gamers
+	voting           map[int][]Voting
 }
 
+var IdOfAssociated int
+
 func NewService(storage storage.Storage) *Service {
-	return &Service{Storage: storage, game: make(map[int][]Gamers), wantPlay: make(map[int][]int), inGame: make(map[int][]Gamers)}
+	return &Service{Storage: storage, game: make(map[int][]Gamers), wantPlay: make(map[int][]int), inGame: make(map[int][]Gamers), voting: make(map[int][]Voting)}
 }
 
 func (s *Service) SaveInDB(name string, id int) error {
@@ -150,12 +154,13 @@ func (s *Service) StartG(chatID int) (string, error) {
 		}
 	}
 	index := rand.Intn(len(array))
-	for i, _ := range array {
+	for i, d := range array {
 		if index == i {
 			nickName, err := s.Storage.TakeNickName(array[i])
 			if err != nil {
 				return "", err
 			}
+			IdOfAssociated = d
 			return nickName, nil
 		}
 	}
@@ -190,4 +195,40 @@ func (s *Service) TakePhoto(userID int, photoNumber int) (int, []Gamers, error) 
 		}
 	}
 	return 0, nil, nil
+}
+
+func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, error) {
+	userWinID := 0
+	for k, v := range s.inGame {
+		if k == chatID {
+			for _, x := range v {
+				for i, d := range x.Img {
+					for _, j := range s.game {
+						for _, q := range j {
+							for _, a := range q.Img {
+								if a == d {
+									userWinID = q.ID
+								}
+							}
+						}
+					}
+					if x.ID == userWinID && vote == i && userID != IdOfAssociated {
+						vot := Voting{}
+						vot.ID = userWinID
+						nickName, err := s.Storage.TakeNickName(userWinID)
+						if err != nil {
+							return nil, nil
+						}
+						vot.Nickname = "@" + nickName
+						vot.Count++
+						s.voting[chatID] = append(s.voting[chatID], vot)
+					}
+					if len(s.voting[chatID]) == s.countPlayers {
+						return s.voting[chatID], nil
+					}
+				}
+			}
+		}
+	}
+	return nil, nil
 }
