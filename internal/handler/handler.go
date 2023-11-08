@@ -66,6 +66,16 @@ func (s *Handler) HandleButton(c tele.Context) error {
 		s.PhotoTake(c)
 	case "\f4":
 		s.PhotoTake(c)
+	case "\fГолосование0":
+		//s.PhotoTake(c)
+	case "\fГолосование1":
+		//s.PhotoTake(c)
+	case "\fГолосование2":
+		//s.PhotoTake(c)
+	case "\fГолосование3":
+		//s.PhotoTake(c)
+	case "\fГолосование4":
+		//s.PhotoTake(c)
 	}
 	return nil
 }
@@ -202,9 +212,9 @@ func (s *Handler) PhotoTake(c tele.Context) error {
 	if err != nil {
 		return err
 	}
-	for _, ph := range resPhoto {
-		for i, c := range ph.Img {
-			open, err := os.Open("/Users/dmitrydenisov/GolandProjects/Imaginarium/src/" + c.FileLocal)
+	for i, ph := range resPhoto {
+		for _, f := range ph.Img {
+			open, err := os.Open("/Users/dmitrydenisov/GolandProjects/Imaginarium/src/" + f.FileLocal)
 			if err != nil {
 				return err
 			}
@@ -213,7 +223,7 @@ func (s *Handler) PhotoTake(c tele.Context) error {
 			chatID := tele.ChatID(chat)
 			s.Bot.Send(chatID, phot)
 			btn := tele.InlineButton{
-				Unique: strconv.Itoa(i),
+				Unique: "Голосование" + strconv.Itoa(i),
 				Text:   fmt.Sprint("Голосование №" + strconv.Itoa(i)),
 			}
 
