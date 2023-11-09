@@ -56,25 +56,25 @@ func (s *Handler) HandleButton(c tele.Context) error {
 		s.AddPlayer(c)
 	case "\fready":
 		s.GiveCards(c)
-	case "\f0":
+	case "0":
 		s.PhotoTake(c)
-	case "\f1":
+	case "1":
 		s.PhotoTake(c)
-	case "\f2":
+	case "2":
 		s.PhotoTake(c)
-	case "\f3":
+	case "3":
 		s.PhotoTake(c)
-	case "\f4":
+	case "4":
 		s.PhotoTake(c)
-	case "\fГолосование0":
+	case "Голосование0":
 		s.Vote(c)
-	case "\fГолосование1":
+	case "Голосование1":
 		s.Vote(c)
-	case "\fГолосование2":
+	case "Голосование2":
 		s.Vote(c)
-	case "\fГолосование3":
+	case "Голосование3":
 		s.Vote(c)
-	case "\fГолосование4":
+	case "Голосование4":
 		s.Vote(c)
 	}
 	return nil
@@ -153,18 +153,31 @@ func (s *Handler) GiveCards(c tele.Context) error {
 						if err != nil {
 							return nil
 						}
-						btn := tele.InlineButton{
-							Unique: strconv.Itoa(p),
-							Text:   fmt.Sprint("Для ассоциации №" + strconv.Itoa(p)),
-						}
+						//btn := tele.InlineButton{
+						//	Unique: strconv.Itoa(p),
+						//	Text:   fmt.Sprint("Для ассоциации №" + strconv.Itoa(p)),
+						//}
+						//
+						//inlineKeys := [][]tele.InlineButton{
+						//	[]tele.InlineButton{btn},
+						//}
 
-						inlineKeys := [][]tele.InlineButton{
-							[]tele.InlineButton{btn},
-						}
+						//reply := &tele.ReplyMarkup{}
+						//btne := reply.Data(fmt.Sprint("Для ассоциации №"+strconv.Itoa(p)), strconv.Itoa(p))
+						//reply.Inline(
+						//	reply.Row(btne))
 
-						s.Bot.Send(c.Sender(), "Выберите фото:", &tele.ReplyMarkup{
-							InlineKeyboard: inlineKeys,
-						})
+						startGameKeyboard := &tele.ReplyMarkup{
+							InlineKeyboard: [][]tele.InlineButton{
+								{
+									tele.InlineButton{
+										Text: fmt.Sprint("Для ассоциации №" + strconv.Itoa(p)),
+										Data: strconv.Itoa(p),
+									},
+								},
+							},
+						}
+						s.Bot.Send(c.Sender(), "Нажми кнопку", startGameKeyboard)
 					}
 				}
 			}
@@ -207,7 +220,10 @@ func (s *Handler) StartGame(c tele.Context) error {
 func (s *Handler) PhotoTake(c tele.Context) error {
 	photoNumber := c.Data()
 	userID := c.Sender().ID
-	number, _ := strconv.Atoi(photoNumber[2:])
+	number, err := strconv.Atoi(photoNumber)
+	if err != nil {
+		return err
+	}
 	chat, resPhoto, err := s.Service.TakePhoto(int(userID), number)
 	if err != nil {
 		return err
@@ -222,18 +238,26 @@ func (s *Handler) PhotoTake(c tele.Context) error {
 			phot := &tele.Photo{File: tele.FromDisk(open.Name())}
 			chatID := tele.ChatID(chat)
 			s.Bot.Send(chatID, phot)
-			btn := tele.InlineButton{
-				Unique: "Голосование" + strconv.Itoa(i),
-				Text:   fmt.Sprint("Голосование №" + strconv.Itoa(i)),
-			}
+			//btn := tele.InlineButton{
+			//	Unique: "Голосование" + strconv.Itoa(i),
+			//	Text:   fmt.Sprint("Голосование №" + strconv.Itoa(i)),
+			//}
+			//
+			//inlineKeys := [][]tele.InlineButton{
+			//	[]tele.InlineButton{btn},
+			//}
 
-			inlineKeys := [][]tele.InlineButton{
-				[]tele.InlineButton{btn},
+			startGameKeyboard := &tele.ReplyMarkup{
+				InlineKeyboard: [][]tele.InlineButton{
+					{
+						tele.InlineButton{
+							Text: fmt.Sprint("Голосование №" + strconv.Itoa(i)),
+							Data: "Голосование" + strconv.Itoa(i),
+						},
+					},
+				},
 			}
-
-			s.Bot.Send(chatID, "Выберите фото:", &tele.ReplyMarkup{
-				InlineKeyboard: inlineKeys,
-			})
+			s.Bot.Send(chatID, "Нажми кнопку", startGameKeyboard)
 		}
 	}
 	return nil
@@ -243,11 +267,11 @@ func (s *Handler) Vote(c tele.Context) error {
 	photoUser := c.Data()
 	chatID := c.Chat().ID
 	userID := c.Sender().ID
-	ph, err := strconv.Atoi(photoUser[13:])
+	ph, err := strconv.Atoi(photoUser)
+	vter, err := s.Service.Vote(ph, int(userID), int(chatID))
 	if err != nil {
 		return err
 	}
-	vter, err := s.Service.Vote(ph, int(userID), int(chatID))
 	for _, i := range vter {
 		resStr := fmt.Sprintf("Проголосовали за %s: %d", i.Nickname, i.Count)
 		s.Bot.Send(c.Chat(), resStr)
