@@ -32,9 +32,8 @@ type Service struct {
 	flag             bool
 	inGame           map[int][]Gamers
 	voting           map[int][]Voting
+	IdOfAssociated   int
 }
-
-var IdOfAssociated int
 
 func NewService(storage storage.Storage) *Service {
 	return &Service{Storage: storage, game: make(map[int][]Gamers), wantPlay: make(map[int][]int), inGame: make(map[int][]Gamers), voting: make(map[int][]Voting)}
@@ -160,7 +159,7 @@ func (s *Service) StartG(chatID int) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			IdOfAssociated = d
+			s.IdOfAssociated = d
 			return nickName, nil
 		}
 	}
@@ -202,29 +201,31 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, error) {
 	for k, v := range s.inGame {
 		if k == chatID {
 			for _, x := range v {
-				for i, d := range x.Img {
-					for _, j := range s.game {
-						for _, q := range j {
-							for _, a := range q.Img {
-								if a == d {
-									userWinID = q.ID
+				if x.ID != s.IdOfAssociated && x.ID == userID {
+					for i, d := range x.Img {
+						for _, j := range s.game {
+							for _, q := range j {
+								for _, a := range q.Img {
+									if a == d {
+										userWinID = q.ID
+									}
 								}
 							}
 						}
-					}
-					if x.ID == userWinID && vote == i && userID != IdOfAssociated {
-						vot := Voting{}
-						vot.ID = userWinID
-						nickName, err := s.Storage.TakeNickName(userWinID)
-						if err != nil {
-							return nil, nil
+						if x.ID == userWinID && vote == i {
+							vot := Voting{}
+							vot.ID = userWinID
+							nickName, err := s.Storage.TakeNickName(userWinID)
+							if err != nil {
+								return nil, nil
+							}
+							vot.Nickname = "@" + nickName
+							vot.Count++
+							s.voting[chatID] = append(s.voting[chatID], vot)
 						}
-						vot.Nickname = "@" + nickName
-						vot.Count++
-						s.voting[chatID] = append(s.voting[chatID], vot)
-					}
-					if len(s.voting[chatID]) == s.countPlayers {
-						return s.voting[chatID], nil
+						if len(s.voting[chatID]) == s.countPlayers {
+							return s.voting[chatID], nil
+						}
 					}
 				}
 			}

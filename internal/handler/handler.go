@@ -267,7 +267,8 @@ func (s *Handler) Vote(c tele.Context) error {
 	photoUser := c.Data()
 	chatID := c.Chat().ID
 	userID := c.Sender().ID
-	ph, err := strconv.Atoi(photoUser)
+	newStr := strings.Replace(photoUser, "Голосование", "", -1)
+	ph, err := strconv.Atoi(newStr)
 	vter, err := s.Service.Vote(ph, int(userID), int(chatID))
 	if err != nil {
 		return err
