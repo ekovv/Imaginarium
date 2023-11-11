@@ -223,7 +223,7 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, error) {
 							vot.Count++
 							s.voting[chatID] = append(s.voting[chatID], vot)
 						}
-						if len(s.voting[chatID]) == s.countPlayers {
+						if len(s.voting[chatID]) == s.countPlayers-1 {
 							return s.voting[chatID], nil
 						}
 					}
