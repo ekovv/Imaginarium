@@ -269,7 +269,7 @@ func (s *Handler) Vote(c tele.Context) error {
 	userID := c.Sender().ID
 	newStr := strings.Replace(photoUser, "Голосование", "", -1)
 	ph, err := strconv.Atoi(newStr)
-	vter, err := s.Service.Vote(ph, int(userID), int(chatID))
+	vter, photoWin, err := s.Service.Vote(ph, int(userID), int(chatID))
 	if err != nil {
 		return err
 	}
@@ -277,5 +277,6 @@ func (s *Handler) Vote(c tele.Context) error {
 		resStr := fmt.Sprintf("Проголосовали за %s: %d", i.NicknameWin, i.Count)
 		s.Bot.Send(c.Chat(), resStr)
 	}
+	s.Bot.Send(c.Chat(), "Загаданное изображение было:", photoWin)
 	return nil
 }

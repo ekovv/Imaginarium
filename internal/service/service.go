@@ -18,7 +18,7 @@ type Inter interface {
 	MapIsFull(chatID int, userID int) bool
 	StartG(chatID int) (string, error)
 	TakePhoto(userID int, photoNumber int) (int, []Gamers, error)
-	Vote(vote int, userID int, chatID int) ([]Voting, error)
+	Vote(vote int, userID int, chatID int) ([]Voting, *tele.Photo, error)
 }
 
 type Service struct {
@@ -196,7 +196,7 @@ func (s *Service) TakePhoto(userID int, photoNumber int) (int, []Gamers, error) 
 	return 0, nil, nil
 }
 
-func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, error) {
+func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, *tele.Photo, error) {
 	userWinID := 0
 	for k, v := range s.inGame {
 		if k == chatID {
@@ -218,7 +218,7 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, error) {
 							nickNameWin, err := s.Storage.TakeNickName(userWinID)
 							nickNameVote, err := s.Storage.TakeNickName(userID)
 							if err != nil {
-								return nil, nil
+								return nil, nil, err
 							}
 							vot.NicknameWin = "@" + nickNameWin
 							vot.NicknameVote = "@" + nickNameVote
@@ -226,12 +226,24 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, error) {
 							s.voting[chatID] = append(s.voting[chatID], vot)
 						}
 						if len(s.voting[chatID]) == s.countPlayers-1 {
-							return s.voting[chatID], nil
+							var photoWin *tele.Photo
+							for n, l := range s.inGame {
+								if n == chatID {
+									for _, m := range l {
+										if m.ID == userWinID {
+											for _, z := range m.Img {
+												photoWin = z
+											}
+										}
+									}
+								}
+							}
+							return s.voting[chatID], photoWin, nil
 						}
 					}
 				}
 			}
 		}
 	}
-	return nil, nil
+	return nil, nil, nil
 }
