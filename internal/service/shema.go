@@ -9,7 +9,7 @@ type Gamers struct {
 
 type Voting struct {
 	IDWin        int
-	NicknameVote string
+	NicknameVote []string
 	NicknameWin  string
 	Count        int
 }
