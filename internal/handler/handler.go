@@ -277,12 +277,6 @@ func (s *Handler) Vote(c tele.Context) error {
 		resStr := fmt.Sprintf("Проголосовали за %s: %d", i.NicknameWin, i.Count)
 		s.Bot.Send(c.Chat(), resStr)
 	}
-	//open, err := os.Open("/Users/dmitrydenisov/GolandProjects/Imaginarium/src/" + photoWin.FileLocal)
-	//if err != nil {
-	//	return err
-	//}
-	//defer open.Close()
-	//phot := &tele.Photo{File: tele.FromDisk(open.Name())}
-	//s.Bot.Send(c.Chat(), "Загаданное изображение было:", phot)
+
 	return nil
 }
