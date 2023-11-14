@@ -222,7 +222,7 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, *tele.Photo,
 							}
 							vot.NicknameWin = "@" + nickNameWin
 							vot.NicknameVote = "@" + nickNameVote
-							vot.Count++
+							vot.Count++ // сделать нормальным чтобы не создавалась заново структура
 							s.voting[chatID] = append(s.voting[chatID], vot)
 						}
 						if len(s.voting[chatID]) == s.countPlayers-1 {
