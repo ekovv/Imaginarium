@@ -201,7 +201,7 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, error) {
 	for k, v := range s.inGame {
 		if k == chatID {
 			for _, x := range v {
-				if x.ID != s.IdOfAssociated && x.ID == userID {
+				if x.ID != s.IdOfAssociated {
 					for i, d := range x.Img {
 						for _, j := range s.game {
 							for _, q := range j {
@@ -214,12 +214,14 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, error) {
 						}
 						if x.ID == userWinID && vote == i {
 							vot := Voting{}
-							vot.ID = userWinID
-							nickName, err := s.Storage.TakeNickName(userWinID)
+							vot.IDWin = userWinID
+							nickNameWin, err := s.Storage.TakeNickName(userWinID)
+							nickNameVote, err := s.Storage.TakeNickName(userID)
 							if err != nil {
 								return nil, nil
 							}
-							vot.Nickname = "@" + nickName
+							vot.NicknameWin = "@" + nickNameWin
+							vot.NicknameVote = "@" + nickNameVote
 							vot.Count++
 							s.voting[chatID] = append(s.voting[chatID], vot)
 						}

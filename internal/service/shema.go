@@ -8,7 +8,8 @@ type Gamers struct {
 }
 
 type Voting struct {
-	ID       int
-	Nickname string
-	Count    int
+	IDWin        int
+	NicknameVote string
+	NicknameWin  string
+	Count        int
 }

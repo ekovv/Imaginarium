@@ -274,7 +274,7 @@ func (s *Handler) Vote(c tele.Context) error {
 		return err
 	}
 	for _, i := range vter {
-		resStr := fmt.Sprintf("Проголосовали за %s: %d", i.Nickname, i.Count)
+		resStr := fmt.Sprintf("Проголосовали за %s: %d", i.NicknameWin, i.Count)
 		s.Bot.Send(c.Chat(), resStr)
 	}
 	return nil
