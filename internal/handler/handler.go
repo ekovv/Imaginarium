@@ -153,19 +153,6 @@ func (s *Handler) GiveCards(c tele.Context) error {
 						if err != nil {
 							return nil
 						}
-						//btn := tele.InlineButton{
-						//	Unique: strconv.Itoa(p),
-						//	Text:   fmt.Sprint("Для ассоциации №" + strconv.Itoa(p)),
-						//}
-						//
-						//inlineKeys := [][]tele.InlineButton{
-						//	[]tele.InlineButton{btn},
-						//}
-
-						//reply := &tele.ReplyMarkup{}
-						//btne := reply.Data(fmt.Sprint("Для ассоциации №"+strconv.Itoa(p)), strconv.Itoa(p))
-						//reply.Inline(
-						//	reply.Row(btne))
 
 						startGameKeyboard := &tele.ReplyMarkup{
 							InlineKeyboard: [][]tele.InlineButton{
@@ -238,15 +225,6 @@ func (s *Handler) PhotoTake(c tele.Context) error {
 			phot := &tele.Photo{File: tele.FromDisk(open.Name())}
 			chatID := tele.ChatID(chat)
 			s.Bot.Send(chatID, phot)
-			//btn := tele.InlineButton{
-			//	Unique: "Голосование" + strconv.Itoa(i),
-			//	Text:   fmt.Sprint("Голосование №" + strconv.Itoa(i)),
-			//}
-			//
-			//inlineKeys := [][]tele.InlineButton{
-			//	[]tele.InlineButton{btn},
-			//}
-
 			startGameKeyboard := &tele.ReplyMarkup{
 				InlineKeyboard: [][]tele.InlineButton{
 					{

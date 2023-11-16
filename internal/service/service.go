@@ -33,10 +33,11 @@ type Service struct {
 	inGame           map[int][]Gamers
 	voting           map[int][]Voting
 	IdOfAssociated   int
+	resultOfVoting   map[int]Voting
 }
 
 func NewService(storage storage.Storage) *Service {
-	return &Service{Storage: storage, game: make(map[int][]Gamers), wantPlay: make(map[int][]int), inGame: make(map[int][]Gamers), voting: make(map[int][]Voting)}
+	return &Service{Storage: storage, game: make(map[int][]Gamers), wantPlay: make(map[int][]int), inGame: make(map[int][]Gamers), voting: make(map[int][]Voting), resultOfVoting: make(map[int]Voting)}
 }
 
 func (s *Service) SaveInDB(name string, id int) error {
@@ -213,6 +214,21 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, *tele.Photo,
 							}
 						}
 						if x.ID == userWinID && vote == i {
+							for g, h := range s.voting {
+								if g == chatID {
+									for _, y := range h {
+										if y.IDWin == userWinID {
+											nickNameVote, err := s.Storage.TakeNickName(userID)
+											if err != nil {
+												return nil, nil, err
+											}
+											y.NicknameVote = append(y.NicknameVote, nickNameVote)
+											y.Count++
+											return nil, nil, nil
+										}
+									}
+								}
+							}
 							vot := Voting{}
 							vot.IDWin = userWinID
 							nickNameWin, err := s.Storage.TakeNickName(userWinID)
