@@ -224,22 +224,23 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, *tele.Photo,
 											}
 											y.NicknameVote = append(y.NicknameVote, nickNameVote)
 											y.Count++
-											return nil, nil, nil
+										} else {
+											vot := Voting{}
+											vot.IDWin = userWinID
+											nickNameWin, err := s.Storage.TakeNickName(userWinID)
+											nickNameVote, err := s.Storage.TakeNickName(userID)
+											if err != nil {
+												return nil, nil, err
+											}
+											vot.NicknameWin = "@" + nickNameWin
+											vot.NicknameVote = append(vot.NicknameVote, "@"+nickNameVote)
+											vot.Count++ // сделать нормальным чтобы не создавалась заново структура
+											s.voting[chatID] = append(s.voting[chatID], vot)
 										}
+
 									}
 								}
 							}
-							vot := Voting{}
-							vot.IDWin = userWinID
-							nickNameWin, err := s.Storage.TakeNickName(userWinID)
-							nickNameVote, err := s.Storage.TakeNickName(userID)
-							if err != nil {
-								return nil, nil, err
-							}
-							vot.NicknameWin = "@" + nickNameWin
-							vot.NicknameVote = append(vot.NicknameVote, "@"+nickNameVote)
-							vot.Count++ // сделать нормальным чтобы не создавалась заново структура
-							s.voting[chatID] = append(s.voting[chatID], vot)
 						}
 						if len(s.voting[chatID]) == s.countPlayers-1 {
 							var photoWin *tele.Photo
