@@ -1,6 +1,7 @@
 package service
 
 import (
+	"Imaginarium/internal/shema"
 	"Imaginarium/internal/storage"
 	"fmt"
 	tele "gopkg.in/telebot.v3"
@@ -13,31 +14,41 @@ import (
 type Inter interface {
 	SaveInDB(name string, id int) error
 	Inc(chatID int, userID int) error
-	AddInMap(chatID int, userID int) (map[int][]Gamers, error)
-	Association(association string, userID int) (string, int, error)
+	AddInMap(chatID int, userID int) (map[int][]shema.Gamers, error)
+	Association(association string, userID int, chatID int) (string, int, error)
 	MapIsFull(chatID int, userID int) bool
 	StartG(chatID int) (string, error)
-	TakePhoto(userID int, photoNumber int) (int, []Gamers, error)
-	Vote(vote int, userID int, chatID int) ([]Voting, *tele.Photo, error)
+	TakePhoto(userID int, photoNumber int) (int, []shema.Gamers, error)
+	Vote(vote int, userID int, chatID int) ([]shema.Voting, *tele.Photo, error)
+	Logic(vote []shema.Voting, chatID int)
 }
 
 type Service struct {
 	Storage          storage.Storage
-	game             map[int][]Gamers
+	game             map[int][]shema.Gamers
 	wantPlay         map[int][]int
-	countCards       int
-	countPlayers     int
-	countAssociation int
-	countReady       int
+	countCards       map[int]int
+	countPlayers     map[int]int
+	countAssociation map[int]int
+	countReady       map[int]int
 	flag             bool
-	inGame           map[int][]Gamers
-	voting           map[int][]Voting
-	IdOfAssociated   int
-	resultOfVoting   map[int]Voting
+	inGame           map[int][]shema.Gamers
+	voting           map[int][]shema.Voting
+	IdOfAssociated   map[int]int
+	resultOfVoting   map[int]shema.Points
 }
 
 func NewService(storage storage.Storage) *Service {
-	return &Service{Storage: storage, game: make(map[int][]Gamers), wantPlay: make(map[int][]int), inGame: make(map[int][]Gamers), voting: make(map[int][]Voting), resultOfVoting: make(map[int]Voting)}
+	return &Service{
+		Storage: storage, game: make(map[int][]shema.Gamers),
+		wantPlay: make(map[int][]int), inGame: make(map[int][]shema.Gamers),
+		voting:           make(map[int][]shema.Voting),
+		resultOfVoting:   make(map[int]shema.Points),
+		countCards:       make(map[int]int),
+		countPlayers:     make(map[int]int),
+		countAssociation: make(map[int]int),
+		countReady:       make(map[int]int),
+	}
 }
 
 func (s *Service) SaveInDB(name string, id int) error {
@@ -55,13 +66,13 @@ func (s *Service) Inc(chatID int, userID int) error {
 			return fmt.Errorf("Game in process")
 		}
 	}
-	s.countPlayers++
-	s.countCards++
+	s.countPlayers[chatID]++
+	s.countCards[chatID]++
 	s.wantPlay[chatID] = append(s.wantPlay[chatID], userID)
 	return nil
 }
 
-func (s *Service) AddInMap(chatID int, userID int) (map[int][]Gamers, error) {
+func (s *Service) AddInMap(chatID int, userID int) (map[int][]shema.Gamers, error) {
 	ph, _ := s.game[chatID]
 	for _, i := range ph {
 		if i.Img != nil && i.ID == userID {
@@ -73,12 +84,12 @@ func (s *Service) AddInMap(chatID int, userID int) (map[int][]Gamers, error) {
 		fmt.Println("Ошибка чтения папки:", err)
 		return nil, err
 	}
-	g := Gamers{}
+	g := shema.Gamers{}
 continiueLoop:
 	for _, file := range files {
 		p, _ := s.game[chatID]
 		for _, i := range p {
-			if i.ID == userID && len(i.Img) >= s.countPlayers {
+			if i.ID == userID && len(i.Img) >= s.countPlayers[chatID] {
 				return s.game, nil
 			}
 		}
@@ -100,7 +111,7 @@ continiueLoop:
 			}
 		}
 		g.Img = append(g.Img, photo)
-		if len(g.Img) != s.countCards {
+		if len(g.Img) != s.countCards[chatID] {
 			continue
 		}
 		s.game[chatID] = append(s.game[chatID], g)
@@ -109,12 +120,12 @@ continiueLoop:
 	return s.game, nil
 }
 
-func (s *Service) Association(association string, userID int) (string, int, error) {
+func (s *Service) Association(association string, userID int, chatID int) (string, int, error) {
 	for key, value := range s.wantPlay {
 		for _, user := range value {
 			if user == userID {
 				result := strings.TrimPrefix(association, "/")
-				s.countAssociation++
+				s.countAssociation[chatID]++
 				return result, key, nil
 			}
 		}
@@ -127,7 +138,7 @@ func (s *Service) MapIsFull(chatID int, userID int) bool {
 		if value != nil && key == chatID {
 			for _, i := range value {
 				if i.ID == userID && i.Img != nil {
-					s.countReady++
+					s.countReady[chatID]++
 					s.flag = true
 				} else {
 					s.flag = false
@@ -135,7 +146,7 @@ func (s *Service) MapIsFull(chatID int, userID int) bool {
 			}
 		}
 	}
-	if s.flag && s.countReady == s.countPlayers {
+	if s.flag && s.countReady[chatID] == s.countPlayers[chatID] {
 		return true
 	} else {
 		return false
@@ -160,7 +171,7 @@ func (s *Service) StartG(chatID int) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			s.IdOfAssociated = d
+			s.IdOfAssociated[chatID] = d
 			return nickName, nil
 		}
 	}
@@ -168,7 +179,7 @@ func (s *Service) StartG(chatID int) (string, error) {
 
 }
 
-func (s *Service) TakePhoto(userID int, photoNumber int) (int, []Gamers, error) {
+func (s *Service) TakePhoto(userID int, photoNumber int) (int, []shema.Gamers, error) {
 	chatID := 0
 	for k, v := range s.game {
 		for _, d := range v {
@@ -176,7 +187,7 @@ func (s *Service) TakePhoto(userID int, photoNumber int) (int, []Gamers, error) 
 				for i, p := range d.Img {
 					if i == photoNumber {
 						chatID = k
-						gamer := Gamers{}
+						gamer := shema.Gamers{}
 						gamer.ID = userID
 						gamer.Img = append(gamer.Img, p)
 						s.inGame[chatID] = append(s.inGame[chatID], gamer)
@@ -186,7 +197,7 @@ func (s *Service) TakePhoto(userID int, photoNumber int) (int, []Gamers, error) 
 		}
 	}
 	for _, o := range s.inGame {
-		if len(o) == s.countPlayers {
+		if len(o) == s.countPlayers[chatID] {
 			for _, x := range o {
 				if len(x.Img) == 1 && chatID != 0 {
 					return chatID, o, nil
@@ -197,12 +208,12 @@ func (s *Service) TakePhoto(userID int, photoNumber int) (int, []Gamers, error) 
 	return 0, nil, nil
 }
 
-func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, *tele.Photo, error) {
+func (s *Service) Vote(vote int, userID int, chatID int) ([]shema.Voting, *tele.Photo, error) {
 	userWinID := 0
 	for k, v := range s.inGame {
 		if k == chatID {
 			for _, x := range v {
-				if x.ID != s.IdOfAssociated {
+				if x.ID != s.IdOfAssociated[chatID] {
 					for i, d := range x.Img {
 						for _, j := range s.game {
 							for _, q := range j {
@@ -225,7 +236,7 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, *tele.Photo,
 											y.NicknameVote = append(y.NicknameVote, nickNameVote)
 											y.Count++
 										} else {
-											vot := Voting{}
+											vot := shema.Voting{}
 											vot.IDWin = userWinID
 											nickNameWin, err := s.Storage.TakeNickName(userWinID)
 											nickNameVote, err := s.Storage.TakeNickName(userID)
@@ -242,7 +253,7 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, *tele.Photo,
 								}
 							}
 						}
-						if len(s.voting[chatID]) == s.countPlayers-1 {
+						if len(s.voting[chatID]) == s.countPlayers[chatID]-1 {
 							var photoWin *tele.Photo
 							for n, l := range s.inGame {
 								if n == chatID {
@@ -263,4 +274,46 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]Voting, *tele.Photo,
 		}
 	}
 	return nil, nil, nil
+}
+
+func (s *Service) Logic(vote []shema.Voting, chatID int) ([]shema.Points, error) {
+	var resArr []shema.Points
+	for _, v := range vote {
+		point := shema.Points{}
+		if v.IDWin == s.IdOfAssociated[chatID] {
+			if len(v.NicknameVote) >= 1 {
+				point.ID = v.IDWin
+				point.Nickname = v.NicknameWin
+				point.Point += 3 + len(v.NicknameVote)
+				resArr = append(resArr, point)
+				continue
+			}
+			for _, peop := range v.NicknameVote {
+				point.Nickname = peop
+				idOfPeop, err := s.Storage.TakeID(peop)
+				if err != nil {
+					return nil, err
+				}
+				point.ID = idOfPeop
+				point.Point += 3
+				resArr = append(resArr, point)
+				continue
+			}
+			if len(v.NicknameVote) == 0 {
+				point.ID = v.IDWin
+				point.Nickname = v.NicknameWin
+				point.Point -= 2
+				resArr = append(resArr, point)
+				continue
+			}
+			if len(v.NicknameVote) == s.countPlayers[chatID] {
+				point.ID = v.IDWin
+				point.Nickname = v.NicknameWin
+				point.Point -= 3
+				resArr = append(resArr, point)
+				continue
+			}
+		}
+
+	}
 }

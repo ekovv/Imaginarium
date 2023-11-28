@@ -44,3 +44,13 @@ func (s *Storage) TakeNickName(id int) (string, error) {
 	}
 	return nickName, nil
 }
+
+func (s *Storage) TakeID(nick string) (int, error) {
+	query := "SELECT idoftelegram FROM users WHERE name = $1"
+	var idOfTelegram int
+	err := s.conn.QueryRow(query, nick).Scan(&idOfTelegram)
+	if err != nil {
+		return 0, fmt.Errorf("not take name from database: %w", err)
+	}
+	return idOfTelegram, nil
+}

@@ -3,6 +3,7 @@ package handler
 import (
 	"Imaginarium/config"
 	"Imaginarium/internal/service"
+	"Imaginarium/internal/shema"
 	"fmt"
 	tele "gopkg.in/telebot.v3"
 	"os"
@@ -183,7 +184,7 @@ func (s *Handler) GiveCards(c tele.Context) error {
 func (s *Handler) Association(c tele.Context) error {
 	data := c.Message().Text
 	if strings.HasPrefix(data, "/") {
-		str, chat, err := s.Service.Association(data, int(c.Sender().ID))
+		str, chat, err := s.Service.Association(data, int(c.Sender().ID), int(c.Chat().ID))
 		if err != nil {
 			return err
 		}
@@ -247,7 +248,7 @@ func (s *Handler) Vote(c tele.Context) error {
 	userID := c.Sender().ID
 	newStr := strings.Replace(photoUser, "Голосование", "", -1)
 	ph, err := strconv.Atoi(newStr)
-	vter, _, err := s.Service.Vote(ph, int(userID), int(chatID))
+	vter, photo, err := s.Service.Vote(ph, int(userID), int(chatID))
 	if err != nil {
 		return err
 	}
@@ -257,4 +258,8 @@ func (s *Handler) Vote(c tele.Context) error {
 	}
 
 	return nil
+}
+
+func (s *Handler) GameLogic(c tele.Context, vote []shema.Voting) error {
+
 }
