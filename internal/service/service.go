@@ -316,4 +316,5 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([]shema.Points, error)
 		}
 
 	}
+	return resArr, nil
 }
