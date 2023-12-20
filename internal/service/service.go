@@ -288,6 +288,7 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([]shema.Points, error)
 				resArr = append(resArr, point)
 				continue
 			}
+
 			for _, peop := range v.NicknameVote {
 				point.Nickname = peop
 				idOfPeop, err := s.Storage.TakeID(peop)
@@ -299,6 +300,7 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([]shema.Points, error)
 				resArr = append(resArr, point)
 				continue
 			}
+
 			if len(v.NicknameVote) == 0 {
 				point.ID = v.IDWin
 				point.Nickname = v.NicknameWin
@@ -306,6 +308,7 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([]shema.Points, error)
 				resArr = append(resArr, point)
 				continue
 			}
+
 			if len(v.NicknameVote) == s.countPlayers[chatID] {
 				point.ID = v.IDWin
 				point.Nickname = v.NicknameWin
