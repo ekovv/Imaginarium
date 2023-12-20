@@ -164,6 +164,7 @@ func (s *Service) StartG(chatID int) (string, error) {
 			}
 		}
 	}
+
 	index := rand.Intn(len(array))
 	for i, d := range array {
 		if index == i {
