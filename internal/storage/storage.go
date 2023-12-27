@@ -63,5 +63,3 @@ func (s *Storage) SavePoints(idOfUser int, nickName string, points int) error {
 	}
 	return nil
 }
-
-func
