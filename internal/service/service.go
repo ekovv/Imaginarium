@@ -35,7 +35,7 @@ type Service struct {
 	inGame           map[int][]shema.Gamers
 	voting           map[int][]shema.Voting
 	IdOfAssociated   map[int]int
-	resultOfVoting   map[int]shema.Points
+	resultOfVoting   map[string]int
 }
 
 func NewService(storage storage.Storage) *Service {
@@ -43,7 +43,7 @@ func NewService(storage storage.Storage) *Service {
 		Storage: storage, game: make(map[int][]shema.Gamers),
 		wantPlay: make(map[int][]int), inGame: make(map[int][]shema.Gamers),
 		voting:           make(map[int][]shema.Voting),
-		resultOfVoting:   make(map[int]shema.Points),
+		resultOfVoting:   make(map[string]int),
 		countCards:       make(map[int]int),
 		countPlayers:     make(map[int]int),
 		countAssociation: make(map[int]int),
@@ -246,7 +246,7 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]shema.Voting, *tele.
 											}
 											vot.NicknameWin = "@" + nickNameWin
 											vot.NicknameVote = append(vot.NicknameVote, "@"+nickNameVote)
-											vot.Count++ // сделать нормальным чтобы не создавалась заново структура
+											vot.Count++
 											s.voting[chatID] = append(s.voting[chatID], vot)
 										}
 
@@ -278,47 +278,17 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]shema.Voting, *tele.
 }
 
 func (s *Service) Logic(vote []shema.Voting, chatID int) ([]shema.Points, error) {
-	var resArr []shema.Points
 	for _, v := range vote {
-		point := shema.Points{}
 		if v.IDWin == s.IdOfAssociated[chatID] {
-			if len(v.NicknameVote) >= 1 {
-				point.ID = v.IDWin
-				point.Nickname = v.NicknameWin
-				point.Point += 3 + len(v.NicknameVote)
-				resArr = append(resArr, point)
-				continue
-			}
-
-			for _, peop := range v.NicknameVote {
-				point.Nickname = peop
-				idOfPeop, err := s.Storage.TakeID(peop)
-				if err != nil {
-					return nil, err
+			if v.NicknameVote != nil {
+				for _, n := range v.NicknameVote {
+					s.resultOfVoting[n]++
+					continue
 				}
-				point.ID = idOfPeop
-				point.Point += 3
-				resArr = append(resArr, point)
-				continue
 			}
-
-			if len(v.NicknameVote) == 0 {
-				point.ID = v.IDWin
-				point.Nickname = v.NicknameWin
-				point.Point -= 2
-				resArr = append(resArr, point)
-				continue
-			}
-
-			if len(v.NicknameVote) == s.countPlayers[chatID] {
-				point.ID = v.IDWin
-				point.Nickname = v.NicknameWin
-				point.Point -= 3
-				resArr = append(resArr, point)
-				continue
-			}
+			s.resultOfVoting[v.NicknameWin] = v.Count
 		}
 
 	}
-	return resArr, nil
+	return nil, nil
 }

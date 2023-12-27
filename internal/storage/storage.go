@@ -54,3 +54,14 @@ func (s *Storage) TakeID(nick string) (int, error) {
 	}
 	return idOfTelegram, nil
 }
+
+func (s *Storage) SavePoints(idOfUser int, nickName string, points int) error {
+	insertQuery := "INSERT INTO points(user_id, nickname, score) VALUES ($1, $2, $3)"
+	_, err := s.conn.Exec(insertQuery, idOfUser, nickName, points)
+	if err != nil {
+		return fmt.Errorf("not save in database: %w", err)
+	}
+	return nil
+}
+
+func
