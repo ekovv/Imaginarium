@@ -286,6 +286,7 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([]shema.Points, error)
 					continue
 				}
 			}
+
 			if v.NicknameVote == nil {
 				s.resultOfVoting[v.NicknameWin] -= 2
 				continue
