@@ -290,6 +290,7 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([]shema.Points, error)
 			if v.NicknameVote == nil {
 				s.resultOfVoting[v.NicknameWin] -= 2
 				continue
+
 			} else {
 				for _, n := range v.NicknameVote {
 					s.resultOfVoting[n] += 3
