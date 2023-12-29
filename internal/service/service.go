@@ -20,7 +20,7 @@ type Inter interface {
 	StartG(chatID int) (string, error)
 	TakePhoto(userID int, photoNumber int) (int, []shema.Gamers, error)
 	Vote(vote int, userID int, chatID int) ([]shema.Voting, *tele.Photo, error)
-	Logic(vote []shema.Voting, chatID int)
+	Logic(vote []shema.Voting, chatID int) ([][]string, error)
 }
 
 type Service struct {
@@ -48,6 +48,7 @@ func NewService(storage storage.Storage) *Service {
 		countPlayers:     make(map[int]int),
 		countAssociation: make(map[int]int),
 		countReady:       make(map[int]int),
+		IdOfAssociated:   make(map[int]int),
 	}
 }
 
@@ -220,38 +221,52 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]shema.Voting, *tele.
 							for _, q := range j {
 								for _, a := range q.Img {
 									if a == d {
-										userWinID = q.ID
+										userWinID = x.ID
 									}
 								}
 							}
 						}
 						if x.ID == userWinID && vote == i {
-							for g, h := range s.voting {
-								if g == chatID {
-									for _, y := range h {
-										if y.IDWin == userWinID {
-											nickNameVote, err := s.Storage.TakeNickName(userID)
-											if err != nil {
-												return nil, nil, err
+							if len(s.voting) != 0 {
+								for g, h := range s.voting {
+									if g == chatID {
+										for _, y := range h {
+											if y.IDWin == userWinID {
+												nickNameVote, err := s.Storage.TakeNickName(userID)
+												if err != nil {
+													return nil, nil, err
+												}
+												y.NicknameVote = append(y.NicknameVote, nickNameVote)
+												y.Count++
+											} else {
+												vot := shema.Voting{}
+												vot.IDWin = userWinID
+												nickNameWin, err := s.Storage.TakeNickName(userWinID)
+												nickNameVote, err := s.Storage.TakeNickName(userID)
+												if err != nil {
+													return nil, nil, err
+												}
+												vot.NicknameWin = "@" + nickNameWin
+												vot.NicknameVote = append(vot.NicknameVote, "@"+nickNameVote)
+												vot.Count++
+												s.voting[chatID] = append(s.voting[chatID], vot)
 											}
-											y.NicknameVote = append(y.NicknameVote, nickNameVote)
-											y.Count++
-										} else {
-											vot := shema.Voting{}
-											vot.IDWin = userWinID
-											nickNameWin, err := s.Storage.TakeNickName(userWinID)
-											nickNameVote, err := s.Storage.TakeNickName(userID)
-											if err != nil {
-												return nil, nil, err
-											}
-											vot.NicknameWin = "@" + nickNameWin
-											vot.NicknameVote = append(vot.NicknameVote, "@"+nickNameVote)
-											vot.Count++
-											s.voting[chatID] = append(s.voting[chatID], vot)
 										}
-
 									}
 								}
+
+							} else {
+								vot := shema.Voting{}
+								vot.IDWin = userWinID
+								nickNameWin, err := s.Storage.TakeNickName(userWinID)
+								nickNameVote, err := s.Storage.TakeNickName(userID)
+								if err != nil {
+									return nil, nil, err
+								}
+								vot.NicknameWin = "@" + nickNameWin
+								vot.NicknameVote = append(vot.NicknameVote, "@"+nickNameVote)
+								vot.Count++
+								s.voting[chatID] = append(s.voting[chatID], vot)
 							}
 						}
 						if len(s.voting[chatID]) == s.countPlayers[chatID]-1 {
@@ -277,7 +292,7 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]shema.Voting, *tele.
 	return nil, nil, nil
 }
 
-func (s *Service) Logic(vote []shema.Voting, chatID int) ([]shema.Points, error) {
+func (s *Service) Logic(vote []shema.Voting, chatID int) ([][]string, error) {
 	for _, v := range vote {
 		if v.IDWin == s.IdOfAssociated[chatID] {
 			if v.NicknameVote != nil {
@@ -302,6 +317,19 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([]shema.Points, error)
 			s.resultOfVoting[v.NicknameWin] += v.Count
 		}
 
+		for k, a := range s.resultOfVoting {
+			if v.NicknameWin == k {
+				err := s.Storage.SavePoints(v.IDWin, k, a, chatID)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
 	}
-	return nil, nil
+	result, err := s.Storage.TakeAllPoints(chatID)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

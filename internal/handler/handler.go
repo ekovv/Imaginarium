@@ -256,10 +256,15 @@ func (s *Handler) Vote(c tele.Context) error {
 		resStr := fmt.Sprintf("Проголосовали за %s: %d", i.NicknameWin, i.Count)
 		s.Bot.Send(c.Chat(), resStr)
 	}
-
+	s.GameLogic(c, vter)
 	return nil
 }
 
-func (s *Handler) GameLogic(c tele.Context, vote []shema.Voting) error {
-
+func (s *Handler) GameLogic(c tele.Context, a []shema.Voting) error {
+	chatID := c.Chat().ID
+	_, err := s.Service.Logic(a, int(chatID))
+	if err != nil {
+		return err
+	}
+	return nil
 }
