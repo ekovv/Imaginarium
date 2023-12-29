@@ -215,7 +215,7 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]shema.Voting, *tele.
 	for k, v := range s.inGame {
 		if k == chatID {
 			for _, x := range v {
-				if x.ID != s.IdOfAssociated[chatID] {
+				if userID != s.IdOfAssociated[chatID] {
 					for i, d := range x.Img {
 						for _, j := range s.game {
 							for _, q := range j {
@@ -297,6 +297,10 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([][]string, error) {
 		if v.IDWin == s.IdOfAssociated[chatID] {
 			if v.NicknameVote != nil {
 				if len(v.NicknameVote) == s.countPlayers[chatID]-1 {
+					err := s.Storage.SavePoints(v.IDWin, v.NicknameWin, -3, chatID)
+					if err != nil {
+						return nil, err
+					}
 					s.resultOfVoting[v.NicknameWin] -= 3
 					continue
 				}
@@ -304,16 +308,32 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([][]string, error) {
 			}
 
 			if v.NicknameVote == nil {
+				err := s.Storage.SavePoints(v.IDWin, v.NicknameWin, -2, chatID)
+				if err != nil {
+					return nil, err
+				}
 				s.resultOfVoting[v.NicknameWin] -= 2
 				continue
 
 			} else {
 				for _, n := range v.NicknameVote {
+					err := s.Storage.SavePoints(v.IDWin, n, 3, chatID)
+					if err != nil {
+						return nil, err
+					}
 					s.resultOfVoting[n] += 3
 				}
 			}
+			err := s.Storage.SavePoints(v.IDWin, v.NicknameWin, 3+v.Count, chatID)
+			if err != nil {
+				return nil, err
+			}
 			s.resultOfVoting[v.NicknameWin] += 3 + v.Count
 		} else {
+			err := s.Storage.SavePoints(v.IDWin, v.NicknameWin, v.Count, chatID)
+			if err != nil {
+				return nil, err
+			}
 			s.resultOfVoting[v.NicknameWin] += v.Count
 		}
 
