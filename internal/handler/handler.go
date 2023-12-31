@@ -262,7 +262,18 @@ func (s *Handler) Vote(c tele.Context) error {
 
 func (s *Handler) GameLogic(c tele.Context, a []shema.Voting) error {
 	chatID := c.Chat().ID
-	_, err := s.Service.Logic(a, int(chatID))
+	res, err := s.Service.Logic(a, int(chatID))
+	for _, k := range res {
+		chat, err := strconv.Atoi(k[0])
+		if err != nil {
+			return err
+		}
+		if chat == int(chatID) {
+			resStr := fmt.Sprintf("Баллов у  %s: %s", k[1], k[2])
+			s.Bot.Send(c.Chat(), resStr)
+
+		}
+	}
 	if err != nil {
 		return err
 	}
