@@ -57,8 +57,8 @@ func (s *Storage) TakeID(nick string) (int, error) {
 }
 
 func (s *Storage) SavePoints(idOfUser int, nickName string, points int, chatID int) error {
-	insertQuery := "INSERT INTO points(user_id, nickname, score, chat) VALUES ($1, $2, $3, $4)"
-	_, err := s.conn.Exec(insertQuery, idOfUser, nickName, points, chatID)
+	insertQuery := "INSERT INTO points(user_id, nickname, score, chat, flag) VALUES ($1, $2, $3, $4, $5)"
+	_, err := s.conn.Exec(insertQuery, idOfUser, nickName, points, chatID, true)
 	if err != nil {
 		return fmt.Errorf("not save in database: %w", err)
 	}
@@ -66,7 +66,7 @@ func (s *Storage) SavePoints(idOfUser int, nickName string, points int, chatID i
 }
 
 func (s *Storage) TakeAllPoints(chatID int) ([][]string, error) {
-	rows, err := s.conn.Query("SELECT * FROM points WHERE chat = $1", chatID)
+	rows, err := s.conn.Query("SELECT chat,nickname,score FROM points WHERE chat = $1 AND flag = true", chatID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,4 +93,8 @@ func (s *Storage) TakeAllPoints(chatID int) ([][]string, error) {
 		log.Fatal(err)
 	}
 	return result, nil
+}
+
+func (s *Storage) setFall(chatID int, people ...string) error {
+	return nil
 }
