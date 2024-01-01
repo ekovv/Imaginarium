@@ -118,7 +118,7 @@ func (s *Handler) AddPlayer(c tele.Context) error {
 	}
 	lastMessage = c.Message()
 	s.Bot.Send(c.Chat(), reply)
-	duration := 10 * time.Second
+	duration := 20 * time.Second
 	timer := time.NewTimer(duration)
 
 	go func() {
