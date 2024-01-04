@@ -347,6 +347,7 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([][]string, error) {
 			}
 		}
 	}
+	//if result
 	result, err := s.Storage.TakeAllPoints(chatID)
 	if err != nil {
 		return nil, err
