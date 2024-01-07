@@ -210,6 +210,7 @@ func (s *Service) TakePhoto(userID int, photoNumber int) (int, []shema.Gamers, e
 	return 0, nil, nil
 }
 
+// voting
 func (s *Service) Vote(vote int, userID int, chatID int) ([]shema.Voting, *tele.Photo, error) {
 	userWinID := 0
 	for k, v := range s.inGame {
