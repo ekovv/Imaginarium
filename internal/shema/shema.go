@@ -14,8 +14,8 @@ type Voting struct {
 	Count        int
 }
 
-type Points struct {
-	ID       int
-	Nickname string
-	Point    int
-}
+//type Points struct {
+//	ID       int
+//	Nickname string
+//	Point    int
+//}
