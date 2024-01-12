@@ -95,6 +95,7 @@ func (s *Storage) TakeAllPoints(chatID int) ([][]string, error) {
 	return result, nil
 }
 
+// doing
 func (s *Storage) setFall(chatID int, people ...string) error {
 	return nil
 }
