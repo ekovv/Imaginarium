@@ -132,6 +132,7 @@ func (s *Handler) AddPlayer(c tele.Context) error {
 	return nil
 }
 
+// give cards in dialogs from chat
 func (s *Handler) GiveCards(c tele.Context) error {
 	userID := c.Sender().ID
 	chatID := c.Chat().ID
