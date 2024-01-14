@@ -70,7 +70,12 @@ func (s *Storage) TakeAllPoints(chatID int) ([][]string, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			return
+		}
+	}(rows)
 
 	var result [][]string
 	cols, _ := rows.Columns()
