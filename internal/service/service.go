@@ -299,22 +299,25 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([][]string, error) {
 		if v.IDWin == s.IdOfAssociated[chatID] {
 			if v.NicknameVote != nil {
 				if len(v.NicknameVote) == s.countPlayers[chatID]-1 {
-					err := s.Storage.SavePoints(v.IDWin, v.NicknameWin, -3, chatID)
+					err := s.Storage.SavePoints(v.IDWin, v.NicknameWin, 0, chatID)
 					if err != nil {
 						return nil, err
 					}
-					s.resultOfVoting[v.NicknameWin] -= 3
+					s.resultOfVoting[v.NicknameWin] += 0
+					for _, a := range v.NicknameVote {
+						s.resultOfVoting[a] += 3
+					}
 					continue
 				}
 
 			}
 
 			if v.NicknameVote == nil {
-				err := s.Storage.SavePoints(v.IDWin, v.NicknameWin, -2, chatID)
+				err := s.Storage.SavePoints(v.IDWin, v.NicknameWin, 0, chatID)
 				if err != nil {
 					return nil, err
 				}
-				s.resultOfVoting[v.NicknameWin] -= 2
+				s.resultOfVoting[v.NicknameWin] += 0
 				continue
 
 			} else {

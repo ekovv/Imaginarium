@@ -58,8 +58,8 @@ func (s *Storage) TakeID(nick string) (int, error) {
 }
 
 func (s *Storage) SavePoints(idOfUser int, nickName string, points int, chatID int) error {
-	insertQuery := "INSERT INTO points(user_id, nickname, score, chat, flag) VALUES ($1, $2, $3, $4, $5)"
-	_, err := s.conn.Exec(insertQuery, idOfUser, nickName, points, chatID, true)
+	insertQuery := "INSERT INTO points(user_id, nickname, score, chat, flag) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (user_id) DO UPDATE set score = $6"
+	_, err := s.conn.Exec(insertQuery, idOfUser, nickName, points, chatID, true, points)
 	if err != nil {
 		return fmt.Errorf("not save in database: %w", err)
 	}
