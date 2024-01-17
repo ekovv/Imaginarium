@@ -30,6 +30,7 @@ func (s *Storage) Close() error {
 func (s *Storage) Save(name string, id int) error {
 	insertQuery := "INSERT INTO users(name, idoftelegram) VALUES ($1, $2)"
 	_, err := s.conn.Exec(insertQuery, name, id)
+
 	if err != nil {
 		return fmt.Errorf("not save in database: %w", err)
 	}
