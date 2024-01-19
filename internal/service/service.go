@@ -297,6 +297,7 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]shema.Voting, *tele.
 func (s *Service) Logic(vote []shema.Voting, chatID int) ([][]string, error) {
 	for _, v := range vote {
 		if v.IDWin == s.IdOfAssociated[chatID] {
+
 			if v.NicknameVote != nil {
 				if len(v.NicknameVote) == s.countPlayers[chatID]-1 {
 					err := s.Storage.SavePoints(v.IDWin, v.NicknameWin, 0, chatID)
@@ -311,7 +312,6 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([][]string, error) {
 				}
 
 			}
-
 			if v.NicknameVote == nil {
 				err := s.Storage.SavePoints(v.IDWin, v.NicknameWin, 0, chatID)
 				if err != nil {
@@ -351,6 +351,7 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([][]string, error) {
 			}
 		}
 	}
+
 	result, err := s.Storage.TakeAllPoints(chatID)
 	if err != nil {
 		return nil, err
@@ -358,3 +359,16 @@ func (s *Service) Logic(vote []shema.Voting, chatID int) ([][]string, error) {
 
 	return result, nil
 }
+
+// сделать еще одну мапу чтобы когда люди голосвали картинку за которую прогосовал добавлялась в мапу и потом сравнивать и удалят из s.inGame
+//func (s *Service) newCards(chatID int) {
+//	for k, m := range s.inGame {
+//		if k == chatID {
+//			for _, st := range m {
+//				for _, card := range st.Img {
+//
+//				}
+//			}
+//		}
+//	}
+//}
