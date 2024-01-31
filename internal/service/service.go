@@ -293,7 +293,6 @@ func (s *Service) Vote(vote int, userID int, chatID int) ([]shema.Voting, *tele.
 	return nil, nil, nil
 }
 
-// доделать
 func (s *Service) Logic(vote []shema.Voting, chatID int) ([][]string, error) {
 	for _, v := range vote {
 		if v.IDWin == s.IdOfAssociated[chatID] {
