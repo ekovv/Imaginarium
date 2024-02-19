@@ -14,9 +14,9 @@ type DRedisStorage struct {
 
 func NewRedisStorage(config config.Config) *DRedisStorage {
 	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379", // адрес сервера Redis
-		Password: "",               // пароль (если есть)
-		DB:       0,                // используемая база данных
+		Addr:     "localhost:6379", // адрес сервера Redis ТЕСТ
+		Password: "",               // пароль (если есть) ТЕСТ
+		DB:       0,                // используемая база данных ТЕСТ
 	})
 	s := &DRedisStorage{
 		conn: client,
@@ -53,7 +53,6 @@ func (s *DRedisStorage) TakeAllPoints(chatID int) ([][]string, error) {
 	panic("implement me")
 }
 
-// doing
 func (s *DRedisStorage) SetFall(chatID int, people ...string) error {
 	panic("implement me")
 }
