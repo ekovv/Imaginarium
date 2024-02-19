@@ -6,12 +6,16 @@ import (
 	"Imaginarium/internal/service"
 	"Imaginarium/internal/storage"
 	"gopkg.in/telebot.v3"
+	"log"
 )
 
 func main() {
 	conf := config.New()
-	st := storage.NewStorage(conf)
-	sr := service.NewService(*st)
+	st, err := storage.New(conf)
+	if err != nil {
+		log.Fatal("bad")
+	}
+	sr := service.NewService(st)
 	h, err := handler.NewHandler(sr, conf)
 	if err != nil {
 		return
